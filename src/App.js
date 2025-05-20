@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,27 +14,26 @@ import Contact from './components/Contact';
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
-  const autoSwitchToastShown = useRef(false);
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 18 || hour < 5) {
-      setDarkMode(true);
-      if (!autoSwitchToastShown.current) {
-        toast.info("🌙 Auto-switched to Dark Mode for night comfort!", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          theme: "dark"
-        });
-        autoSwitchToastShown.current = true;
-      }
-    } else {
-      setDarkMode(false);
-    }
-  }, []);
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setDarkMode(systemPrefersDark);
+
+  const listener = (e) => {
+    setDarkMode(e.matches);
+    toast(`Switched to ${e.matches ? 'Dark' : 'Light'} Mode (System)`, {
+      position: 'top-right',
+      autoClose: 2000,
+      theme: e.matches ? 'dark' : 'light'
+    });
+  };
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', listener);
+
+  return () => {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
+  };
+}, []);
 
   useEffect(() => {
     document.body.className = darkMode ? 'dark-theme' : 'light-theme';
